@@ -1,4 +1,9 @@
+# SPDX-FileCopyrightText: 2023 - 2024 Nikita Chernyi
+# SPDX-FileCopyrightText: 2023 - 2025 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2024 Sergio Durigan Junior
 # SPDX-FileCopyrightText: 2024 sudo-tiz
+# SPDX-FileCopyrightText: 2025 MASH project contributors
+# SPDX-FileCopyrightText: 2025 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -18,8 +23,11 @@ cadvisor_gid: ""
 cadvisor_hostname: ""
 cadvisor_path_prefix: ""
 
-cadvisor_container_image: "{{ cadvisor_container_image_name_prefix }}cadvisor/cadvisor:{{ cadvisor_version }}"
-cadvisor_container_image_name_prefix: "gcr.io/"
+cadvisor_container_image: "{{ cadvisor_container_image_registry_prefix }}cadvisor/cadvisor:{{ cadvisor_container_image_tag }}"
+cadvisor_container_image_tag: "{{ cadvisor_version }}"
+cadvisor_container_image_registry_prefix: "{{ cadvisor_container_image_registry_prefix_upstream }}"
+cadvisor_container_image_registry_prefix_upstream: "{{ cadvisor_container_image_registry_prefix_upstream_default }}"
+cadvisor_container_image_registry_prefix_upstream_default: gcr.io/
 cadvisor_container_image_force_pull: "{{ cadvisor_container_image.endswith(':latest') }}"
 
 # A path on host where all related files will be saved
