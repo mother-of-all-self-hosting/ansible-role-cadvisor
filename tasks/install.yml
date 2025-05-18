@@ -1,29 +1,33 @@
+# SPDX-FileCopyrightText: 2023 - 2025 Slavi Pantaleev
 # SPDX-FileCopyrightText: 2024 sudo-tiz
+# SPDX-FileCopyrightText: 2025 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
 
-- name: Ensure cAdvisor base path exists
+- name: Ensure cAdvisor path exists
   ansible.builtin.file:
-    path: "{{ cadvisor_base_path }}"
+    path: "{{ item }}"
     state: directory
-    mode: 0700
+    mode: 0750
     owner: "{{ cadvisor_uid }}"
     group: "{{ cadvisor_gid }}"
+  with_items:
+    - "{{ cadvisor_base_path }}"
 
-- name: Ensure cAdvisor support files created
+- name: Ensure cAdvisor support files installed
   ansible.builtin.template:
     src: "{{ role_path }}/templates/{{ item }}.j2"
     dest: "{{ cadvisor_base_path }}/{{ item }}"
+    mode: 0640
     owner: "{{ cadvisor_uid }}"
     group: "{{ cadvisor_gid }}"
-    mode: 0640
   with_items:
-    - labels
     - env
+    - labels
 
-- name: Ensure cAdvisor image is pulled
+- name: Ensure cAdvisor container image is pulled
   community.docker.docker_image:
     name: "{{ cadvisor_docker_image }}"
     source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
@@ -36,10 +40,12 @@
 
 - name: Ensure cAdvisor container network is created
   community.general.docker_network:
+    enable_ipv6: "{{ devture_systemd_docker_base_ipv6_enabled }}"
     name: "{{ cadvisor_container_network }}"
     driver: bridge
+    driver_options: "{{ devture_systemd_docker_base_container_networks_driver_options }}"
 
-- name: Ensure cAdvisor systemd service installed
+- name: Ensure cAdvisor systemd service is present
   ansible.builtin.template:
     src: "{{ role_path }}/templates/cadvisor.service.j2"
     dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ cadvisor_identifier }}.service"
