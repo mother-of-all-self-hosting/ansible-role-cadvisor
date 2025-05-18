@@ -27,7 +27,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			--log-driver=none \
 			--network={{ cadvisor_container_network }} \
 			{% if cadvisor_container_http_host_bind_port %}
-			-p {{ cadvisor_container_http_host_bind_port }}:8080 \
+			-p {{ cadvisor_container_http_host_bind_port }}:{{ cadvisor_container_http_port }} \
 			{% endif %}
 			--pid=host \
 			--env-file={{ cadvisor_base_path }}/env \
