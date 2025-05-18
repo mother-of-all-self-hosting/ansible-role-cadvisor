@@ -25,6 +25,13 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			--rm \
 			--name {{ cadvisor_identifier }} \
 			--log-driver=none \
+			--network={{ cadvisor_container_network }} \
+			{% if cadvisor_container_http_host_bind_port %}
+			-p {{ cadvisor_container_http_host_bind_port }}:8080 \
+			{% endif %}
+			--pid=host \
+			--env-file={{ cadvisor_base_path }}/env \
+			--label-file={{ cadvisor_base_path }}/labels \
 			{% if cadvisor_config_providers_docker_endpoint_is_unix_socket %}
 			--mount type=bind,src={{ cadvisor_config_providers_docker_endpoint | replace('unix://', '') }},dst=/var/run/docker.sock,ro \
 			{% else %}
@@ -34,13 +41,6 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			{% for arg in cadvisor_container_extra_arguments %}
 			{{ arg }} \
 			{% endfor %}
-			--network={{ cadvisor_container_network }} \
-			{% if cadvisor_container_http_host_bind_port %}
-			-p {{ cadvisor_container_http_host_bind_port }}:8080 \
-			{% endif %}
-			--pid=host \
-			--label-file={{ cadvisor_base_path }}/labels \
-			--env-file={{ cadvisor_base_path }}/env \
 			{{ cadvisor_container_image }} \
 			{{ cadvisor_process_extra_arguments|join(' ') }}
 
