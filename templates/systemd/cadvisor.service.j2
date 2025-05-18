@@ -22,27 +22,27 @@ ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_s
 ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ cadvisor_identifier }} 2>/dev/null || true'
 
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
-			--rm \
-			--name {{ cadvisor_identifier }} \
-			--log-driver=none \
-			--network={{ cadvisor_container_network }} \
-			{% if cadvisor_container_http_host_bind_port %}
-			-p {{ cadvisor_container_http_host_bind_port }}:{{ cadvisor_container_http_port }} \
-			{% endif %}
-			--pid=host \
-			--env-file={{ cadvisor_base_path }}/env \
-			--label-file={{ cadvisor_base_path }}/labels \
-			{% if cadvisor_config_providers_docker_endpoint_is_unix_socket %}
-			--mount type=bind,src={{ cadvisor_config_providers_docker_endpoint | replace('unix://', '') }},dst=/var/run/docker.sock,ro \
-			{% else %}
-			--cap-drop=ALL \
-			--mount type=bind,source=/var/run,destination=/var/run,readonly \
-			{% endif %}
-			{% for arg in cadvisor_container_extra_arguments %}
-			{{ arg }} \
-			{% endfor %}
-			{{ cadvisor_container_image }} \
-			{{ cadvisor_process_extra_arguments|join(' ') }}
+      --rm \
+      --name {{ cadvisor_identifier }} \
+      --log-driver=none \
+      --network={{ cadvisor_container_network }} \
+      {% if cadvisor_container_http_host_bind_port %}
+      -p {{ cadvisor_container_http_host_bind_port }}:{{ cadvisor_container_http_port }} \
+      {% endif %}
+      --pid=host \
+      --env-file={{ cadvisor_base_path }}/env \
+      --label-file={{ cadvisor_base_path }}/labels \
+      {% if cadvisor_config_providers_docker_endpoint_is_unix_socket %}
+      --mount type=bind,src={{ cadvisor_config_providers_docker_endpoint | replace('unix://', '') }},dst=/var/run/docker.sock,ro \
+      {% else %}
+      --cap-drop=ALL \
+      --mount type=bind,source=/var/run,destination=/var/run,readonly \
+      {% endif %}
+      {% for arg in cadvisor_container_extra_arguments %}
+      {{ arg }} \
+      {% endfor %}
+      {{ cadvisor_container_image }} \
+      {{ cadvisor_process_extra_arguments|join(' ') }}
 
 {% for network in cadvisor_container_additional_networks %}
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} network connect {{ network }} {{ cadvisor_identifier }}
