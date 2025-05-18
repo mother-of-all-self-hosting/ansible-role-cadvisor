@@ -11,7 +11,9 @@
 # Project source code URL: https://github.com/google/cadvisor
 
 cadvisor_enabled: true
+
 cadvisor_identifier: cadvisor
+cadvisor_base_path: "/{{ cadvisor_identifier }}"
 
 # renovate: datasource=docker depName=gcr.io/cadvisor/cadvisor versioning=semver
 cadvisor_version: v0.49.1
@@ -30,8 +32,9 @@ cadvisor_container_image_registry_prefix_upstream: "{{ cadvisor_container_image_
 cadvisor_container_image_registry_prefix_upstream_default: gcr.io/
 cadvisor_container_image_force_pull: "{{ cadvisor_container_image.endswith(':latest') }}"
 
-# A path on host where all related files will be saved
-cadvisor_base_path: "/{{ cadvisor_identifier }}"
+# Controls whether the cAdvisor container exposes its HTTP port (tcp/8080 in the container).
+# Takes an "<ip>:<port>" value (e.g. "127.0.0.1:8080"), just a port number or empty string to not expose.
+cadvisor_container_http_host_bind_port: ""
 
 # The base container network
 #
@@ -45,6 +48,9 @@ cadvisor_base_path: "/{{ cadvisor_identifier }}"
 # For now, we'll live with that, until someone develops a better solution.
 cadvisor_container_network: "{{ cadvisor_identifier }}"
 
+# A port number in the container
+cadvisor_container_http_port: 8080
+
 # A list of additional container networks that the container would be connected to.
 # The role does not create these networks, so make sure they already exist.
 #
@@ -55,6 +61,32 @@ cadvisor_container_network: "{{ cadvisor_identifier }}"
 cadvisor_container_additional_networks: "{{ (cadvisor_container_additional_networks_auto + cadvisor_container_additional_networks_custom) | unique }}"
 cadvisor_container_additional_networks_auto: []
 cadvisor_container_additional_networks_custom: []
+
+# cadvisor_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
+# See `../templates/labels.j2` for details.
+#
+# To inject your own other container labels, see `cadvisor_container_labels_additional_labels`.
+cadvisor_container_labels_traefik_enabled: "{{ true if cadvisor_hostname else false }}"
+cadvisor_container_labels_traefik_docker_network: "{{ cadvisor_container_network }}"
+cadvisor_container_labels_traefik_hostname: "{{ cadvisor_hostname }}"
+# The path prefix must either be `/` or not end with a slash (e.g. `/metrics`).
+cadvisor_container_labels_traefik_path_prefix: "{{ cadvisor_path_prefix }}"
+cadvisor_container_labels_traefik_rule: "Host(`{{ cadvisor_container_labels_traefik_hostname }}`) && PathPrefix(`{{ cadvisor_container_labels_traefik_path_prefix | quote }}`)"
+cadvisor_container_labels_traefik_entrypoints: web-secure
+cadvisor_container_labels_traefik_tls: "{{ cadvisor_container_labels_traefik_entrypoints != 'web' }}"
+cadvisor_container_labels_traefik_tls_certResolver: default # noqa var-naming
+cadvisor_container_labels_middleware_basic_auth_enabled: false
+# See: https://doc.traefik.io/traefik/middlewares/http/basicauth/#users
+cadvisor_container_labels_middleware_basic_auth_users: ""
+
+# cadvisor_container_labels_additional_labels contains a multiline string with additional labels to add to the container label file.
+# See `../templates/labels.j2` for details.
+#
+# Example:
+# cadvisor_container_labels_additional_labels: |
+#   my.label=1
+#   another.label="here"
+cadvisor_container_labels_additional_labels: ""
 
 # A list of extra arguments to pass to the container
 cadvisor_container_extra_arguments: "{{ cadvisor_container_extra_arguments_auto + cadvisor_container_extra_arguments_custom }}"
@@ -79,37 +111,11 @@ cadvisor_systemd_required_services_list: "{{ [devture_systemd_docker_base_docker
 # List of systemd services that cadvisor.service wants
 cadvisor_systemd_wanted_services_list: []
 
-# cadvisor_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
-# See `../templates/labels.j2` for details.
-#
-# To inject your own other container labels, see `cadvisor_container_labels_additional_labels`.
-cadvisor_container_labels_traefik_enabled: "{{ true if cadvisor_hostname else false }}"
-cadvisor_container_labels_traefik_docker_network: "{{ cadvisor_container_network }}"
-cadvisor_container_labels_traefik_hostname: "{{ cadvisor_hostname }}"
-# The path prefix must either be `/` or not end with a slash (e.g. `/metrics`).
-cadvisor_container_labels_traefik_path_prefix: "{{ cadvisor_path_prefix }}"
-cadvisor_container_labels_traefik_rule: "Host(`{{ cadvisor_container_labels_traefik_hostname }}`) && PathPrefix(`{{ cadvisor_container_labels_traefik_path_prefix | quote }}`)"
-cadvisor_container_labels_traefik_entrypoints: web-secure
-cadvisor_container_labels_traefik_tls: "{{ cadvisor_container_labels_traefik_entrypoints != 'web' }}"
-cadvisor_container_labels_traefik_tls_certResolver: default # noqa var-naming
-cadvisor_container_labels_middleware_basic_auth_enabled: false
-# See: https://doc.traefik.io/traefik/middlewares/http/basicauth/#users
-cadvisor_container_labels_middleware_basic_auth_users: ""
-
 # Controls the `providers.docker.network` configuration option.
 cadvisor_config_providers_docker_network: "{{ devture_traefik_container_network }}"
 
 # Controls the `providers.docker.endpoint` configuration option.
 cadvisor_config_providers_docker_endpoint: unix:///var/run/docker.sock
-
-# cadvisor_container_labels_additional_labels contains a multiline string with additional labels to add to the container label file.
-# See `../templates/labels.j2` for details.
-#
-# Example:
-# cadvisor_container_labels_additional_labels: |
-#   my.label=1
-#   another.label="here"
-cadvisor_container_labels_additional_labels: ""
 
 # Additional environment variables to pass to the cAdvisor container.
 # You can use this to further influence the default configuration.
@@ -118,13 +124,6 @@ cadvisor_container_labels_additional_labels: ""
 # cadvisor_environment_variables_additional_variables: |
 #   CADVISOR_SOMETHING=true
 cadvisor_environment_variables_additional_variables: ""
-
-# A port number in the container
-cadvisor_container_http_port: 8080
-
-# Controls whether the cAdvisor container exposes its HTTP port (tcp/8080 in the container).
-# Takes an "<ip>:<port>" value (e.g. "127.0.0.1:8080"), just a port number or empty string to not expose.
-cadvisor_container_http_host_bind_port: ""
 
 # cadvisor_dashboard_urls contains a list of URLs with Grafana dashboard definitions for the cadvisor.
 # This role doesn't make use of this variable, but you can hook this into other roles.
