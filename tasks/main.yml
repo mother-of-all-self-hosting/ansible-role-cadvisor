@@ -1,28 +1,30 @@
+# SPDX-FileCopyrightText: 2023 Slavi Pantaleev
 # SPDX-FileCopyrightText: 2024 sudo-tiz
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
 
-- name: Ensure cAdvisor is installed
+- name: Perform cAdvisor installation tasks
+  block:
+    - name: Validate cAdvisor configuration
+      when: cadvisor_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+
+    - name: Install cAdvisor
+      when: cadvisor_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
   tags:
     - setup-all
     - setup-cadvisor
     - install-all
     - install-cadvisor
-  block:
-    - name: Include cAdvisor config validation tasks
-      when: cadvisor_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
-    - name: Include cAdvisor installation tasks
-      when: cadvisor_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
 
-- name: Ensure cAdvisor is removed
+- name: Perform cAdvisor uninstallation tasks
+  block:
+    - name: Uninstall cAdvisor
+      when: not cadvisor_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
   tags:
     - setup-all
     - setup-cadvisor
-  block:
-    - name: Include cAdvisor removal tasks
-      when: not cadvisor_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
