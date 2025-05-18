@@ -1,28 +1,31 @@
+# SPDX-FileCopyrightText: 2023 Slavi Pantaleev
 # SPDX-FileCopyrightText: 2024 sudo-tiz
+# SPDX-FileCopyrightText: 2025 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-- name: Check existence of cAdvisor service
+
+- name: Check existence of cAdvisor systemd service
   ansible.builtin.stat:
     path: "{{ devture_systemd_docker_base_systemd_path }}/{{ cadvisor_identifier }}.service"
   register: cadvisor_service_stat
 
-- name: Ensure cAdvisor is removed
-  when: cadvisor_service_stat.stat.exists | bool
+- when: cadvisor_service_stat.stat.exists | bool
   block:
-    - name: Ensure cAdvisor is stopped
+    - name: Ensure cAdvisor systemd service is stopped
       ansible.builtin.service:
         name: "{{ cadvisor_identifier }}"
         state: stopped
         enabled: false
         daemon_reload: true
-    - name: Ensure cAdvisor service doesn't exist
+
+    - name: Ensure cAdvisor systemd service does not exist
       ansible.builtin.file:
         path: "{{ devture_systemd_docker_base_systemd_path }}/{{ cadvisor_identifier }}.service"
         state: absent
 
-    - name: Ensure cAdvisor base path doesn't exist
+    - name: Ensure cAdvisor path does not exist
       ansible.builtin.file:
         path: "{{ cadvisor_base_path }}"
         state: absent
