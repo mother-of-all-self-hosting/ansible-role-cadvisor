@@ -4,7 +4,7 @@
 
 ---
 
-- name: Ensure cadvisor base path exists
+- name: Ensure cAdvisor base path exists
   ansible.builtin.file:
     path: "{{ cadvisor_base_path }}"
     state: directory
@@ -12,7 +12,7 @@
     owner: "{{ cadvisor_uid }}"
     group: "{{ cadvisor_gid }}"
 
-- name: Ensure cadvisor support files created
+- name: Ensure cAdvisor support files created
   ansible.builtin.template:
     src: "{{ role_path }}/templates/{{ item }}.j2"
     dest: "{{ cadvisor_base_path }}/{{ item }}"
@@ -23,7 +23,7 @@
     - labels
     - env
 
-- name: Ensure cadvisor image is pulled
+- name: Ensure cAdvisor image is pulled
   community.docker.docker_image:
     name: "{{ cadvisor_docker_image }}"
     source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
@@ -34,12 +34,12 @@
   delay: "{{ devture_playbook_help_container_retries_delay }}"
   until: result is not failed
 
-- name: Ensure cadvisor container network is created
+- name: Ensure cAdvisor container network is created
   community.general.docker_network:
     name: "{{ cadvisor_container_network }}"
     driver: bridge
 
-- name: Ensure cadvisor systemd service installed
+- name: Ensure cAdvisor systemd service installed
   ansible.builtin.template:
     src: "{{ role_path }}/templates/cadvisor.service.j2"
     dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ cadvisor_identifier }}.service"

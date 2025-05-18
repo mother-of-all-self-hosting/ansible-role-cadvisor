@@ -4,25 +4,25 @@
 
 ---
 
-- name: Ensure cadvisor is installed
+- name: Ensure cAdvisor is installed
   tags:
     - setup-all
     - setup-cadvisor
     - install-all
     - install-cadvisor
   block:
-    - name: Include cadvisor config validation tasks
+    - name: Include cAdvisor config validation tasks
       when: cadvisor_enabled | bool
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
-    - name: Include cadvisor installation tasks
+    - name: Include cAdvisor installation tasks
       when: cadvisor_enabled | bool
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
 
-- name: Ensure cadvisor is removed
+- name: Ensure cAdvisor is removed
   tags:
     - setup-all
     - setup-cadvisor
   block:
-    - name: Include cadvisor removal tasks
+    - name: Include cAdvisor removal tasks
       when: not cadvisor_enabled | bool
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
