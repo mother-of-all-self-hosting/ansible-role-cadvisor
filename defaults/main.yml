@@ -18,9 +18,9 @@ cadvisor_gid: ""
 cadvisor_hostname: ""
 cadvisor_path_prefix: ""
 
-cadvisor_docker_image: "{{ cadvisor_docker_image_name_prefix }}cadvisor/cadvisor:{{ cadvisor_version }}"
-cadvisor_docker_image_name_prefix: "gcr.io/"
-cadvisor_docker_image_force_pull: "{{ cadvisor_docker_image.endswith(':latest') }}"
+cadvisor_container_image: "{{ cadvisor_container_image_name_prefix }}cadvisor/cadvisor:{{ cadvisor_version }}"
+cadvisor_container_image_name_prefix: "gcr.io/"
+cadvisor_container_image_force_pull: "{{ cadvisor_container_image.endswith(':latest') }}"
 
 # A path on host where all related files will be saved
 cadvisor_base_path: "/{{ cadvisor_identifier }}"
