@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2024 sudo-tiz
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 # Cadvisor ansible role
 
 This is an [Ansible](https://www.ansible.com/) role which installs [cadvisor](https://github.com/google/cadvisor) to run as a [Docker](https://www.docker.com/) container wrapped in a systemd service.
