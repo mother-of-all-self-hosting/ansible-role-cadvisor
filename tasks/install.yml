@@ -47,6 +47,6 @@
 
 - name: Ensure cAdvisor systemd service is present
   ansible.builtin.template:
-    src: "{{ role_path }}/templates/cadvisor.service.j2"
+    src: "{{ role_path }}/templates/systemd/cadvisor.service.j2"
     dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ cadvisor_identifier }}.service"
     mode: 0644
