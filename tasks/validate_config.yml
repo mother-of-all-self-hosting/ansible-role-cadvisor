@@ -37,3 +37,12 @@
       with_items:
         - cadvisor_container_labels_traefik_hostname
         - cadvisor_container_labels_traefik_path_prefix
+
+    # We ensure it doesn't end with a slash, because we handle both (slash and no-slash).
+    # Knowing that `cadvisor_container_labels_traefik_path_prefix` does not end with a slash
+    # ensures we know how to set these routes up without having to do "does it end with a slash" checks elsewhere.
+    - name: Fail if cadvisor_container_labels_traefik_path_prefix ends with a slash
+      ansible.builtin.fail:
+        msg: >-
+          cadvisor_container_labels_traefik_path_prefix (`{{ cadvisor_container_labels_traefik_path_prefix }}`) must either be `/` or not end with a slash (e.g. `/cadvisor`).
+      when: "cadvisor_container_labels_traefik_path_prefix != '/' and cadvisor_container_labels_traefik_path_prefix[-1] == '/'"
