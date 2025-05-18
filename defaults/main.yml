@@ -105,10 +105,13 @@ cadvisor_process_extra_arguments: "{{ cadvisor_process_extra_arguments_auto + ca
 cadvisor_process_extra_arguments_auto: []
 cadvisor_process_extra_arguments_custom: []
 
-# List of systemd services that cadvisor.service depends on
-cadvisor_systemd_required_services_list: "{{ [devture_systemd_docker_base_docker_service_name] if devture_systemd_docker_base_docker_service_name else [] }}"
+# List of systemd services that the cAdvisor systemd service depends on
+cadvisor_systemd_required_services_list: "{{ cadvisor_systemd_required_services_list_default + cadvisor_systemd_required_services_list_auto + cadvisor_systemd_required_services_list_custom }}"
+cadvisor_systemd_required_services_list_default: "{{ [devture_systemd_docker_base_docker_service_name] if devture_systemd_docker_base_docker_service_name else [] }}"
+cadvisor_systemd_required_services_list_auto: []
+cadvisor_systemd_required_services_list_custom: []
 
-# List of systemd services that cadvisor.service wants
+# List of systemd services that the cAdvisor systemd service wants
 cadvisor_systemd_wanted_services_list: []
 
 # Controls the `providers.docker.network` configuration option.
