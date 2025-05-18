@@ -15,6 +15,7 @@
     - {'old': 'cadvisor_docker_image', 'new': 'cadvisor_container_image'}
     - {'old': 'cadvisor_docker_image_name_prefix', 'new': 'cadvisor_container_image_registry_prefix'}
     - {'old': 'cadvisor_docker_image_force_pull', 'new': 'cadvisor_container_image_force_pull'}
+    - {'old': 'cadvisor_environment_variables_extension', 'new': 'cadvisor_environment_variables_additional_variables'}
 
 - name: Fail if required cAdvisor settings not defined
   ansible.builtin.fail:

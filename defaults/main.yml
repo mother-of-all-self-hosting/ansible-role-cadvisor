@@ -115,9 +115,9 @@ cadvisor_container_labels_additional_labels: ""
 # You can use this to further influence the default configuration.
 #
 # Example:
-# cadvisor_environment_variables_extension: |
+# cadvisor_environment_variables_additional_variables: |
 #   CADVISOR_SOMETHING=true
-cadvisor_environment_variables_extension: ""
+cadvisor_environment_variables_additional_variables: ""
 
 # A port number in the container
 cadvisor_container_http_port: 8080
