@@ -9,7 +9,7 @@ cadvisor_enabled: true
 cadvisor_identifier: cadvisor
 
 # renovate: datasource=docker depName=gcr.io/cadvisor/cadvisor versioning=semver
-cadvisor_version: v0.49.1
+cadvisor_version: v0.52.1
 
 cadvisor_uid: ""
 cadvisor_gid: ""
