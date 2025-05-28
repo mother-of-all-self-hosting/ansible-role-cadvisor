@@ -97,7 +97,7 @@ cadvisor_container_extra_arguments_custom: []
 #
 # Example:
 # cadvisor_process_extra_arguments:
-# --url_base_prefix=/: optional path prefix aded to all resource URLs; useful when running cAdvisor behind a proxy. (default /)
+# --url_base_prefix=/: optional path prefix added to all resource URLs; useful when running cAdvisor behind a proxy. (default /)
 #
 # Note: the above is just an example. Various collectors may require various tweaks to be able to run.
 # See https://github.com/google/cadvisor/blob/master/docs/runtime_options.md for more options

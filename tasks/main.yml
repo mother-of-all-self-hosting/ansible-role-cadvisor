@@ -4,27 +4,25 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-
 - name: Perform cAdvisor installation tasks
-  block:
-    - name: Validate cAdvisor configuration
-      when: cadvisor_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
-
-    - name: Install cAdvisor
-      when: cadvisor_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
   tags:
     - setup-all
     - setup-cadvisor
     - install-all
     - install-cadvisor
+  block:
+    - name: Validate cAdvisor configuration
+      when: cadvisor_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+    - name: Install cAdvisor
+      when: cadvisor_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
 
 - name: Perform cAdvisor uninstallation tasks
+  tags:
+    - setup-all
+    - setup-cadvisor
   block:
     - name: Uninstall cAdvisor
       when: not cadvisor_enabled | bool
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
-  tags:
-    - setup-all
-    - setup-cadvisor

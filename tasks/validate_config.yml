@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-
 - name: (Deprecation) Catch and report renamed settings
   ansible.builtin.fail:
     msg: >-
@@ -12,10 +11,10 @@
       Please change your configuration to rename the variable (`{{ item.old }}` -> `{{ item.new }}`).
   when: "item.old in vars"
   with_items:
-    - {'old': 'cadvisor_docker_image', 'new': 'cadvisor_container_image'}
-    - {'old': 'cadvisor_docker_image_name_prefix', 'new': 'cadvisor_container_image_registry_prefix'}
-    - {'old': 'cadvisor_docker_image_force_pull', 'new': 'cadvisor_container_image_force_pull'}
-    - {'old': 'cadvisor_environment_variables_extension', 'new': 'cadvisor_environment_variables_additional_variables'}
+    - { "old": "cadvisor_docker_image", "new": "cadvisor_container_image" }
+    - { "old": "cadvisor_docker_image_name_prefix", "new": "cadvisor_container_image_registry_prefix" }
+    - { "old": "cadvisor_docker_image_force_pull", "new": "cadvisor_container_image_force_pull" }
+    - { "old": "cadvisor_environment_variables_extension", "new": "cadvisor_environment_variables_additional_variables" }
 
 - name: Fail if required cAdvisor settings not defined
   ansible.builtin.fail:
@@ -27,7 +26,8 @@
     - cadvisor_gid
     - cadvisor_container_network
 
-- when: cadvisor_container_labels_traefik_enabled | bool
+- name: Run if Traefik is enabled
+  when: cadvisor_container_labels_traefik_enabled | bool
   block:
     - name: Fail if required cAdvisor Traefik settings not defined
       ansible.builtin.fail:
