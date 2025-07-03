@@ -16,7 +16,7 @@ cadvisor_identifier: cadvisor
 cadvisor_base_path: "/{{ cadvisor_identifier }}"
 
 # renovate: datasource=docker depName=gcr.io/cadvisor/cadvisor versioning=semver
-cadvisor_version: v0.49.1
+cadvisor_version: v0.52.1
 
 cadvisor_uid: ""
 cadvisor_gid: ""
