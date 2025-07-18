@@ -11,8 +11,6 @@ traefik.enable=true
 traefik.docker.network={{ cadvisor_container_labels_traefik_docker_network }}
 {% endif %}
 
-traefik.http.services.{{ cadvisor_identifier }}.loadbalancer.server.port={{ cadvisor_container_http_port }}
-
 {% set middlewares = [] %}
 
 {% if cadvisor_container_labels_middleware_basic_auth_enabled %}
@@ -29,11 +27,13 @@ traefik.http.routers.{{ cadvisor_identifier }}.middlewares={{ middlewares | join
 traefik.http.routers.{{ cadvisor_identifier }}.service={{ cadvisor_identifier }}
 traefik.http.routers.{{ cadvisor_identifier }}.entrypoints={{ cadvisor_container_labels_traefik_entrypoints }}
 
-
 traefik.http.routers.{{ cadvisor_identifier }}.tls={{ cadvisor_container_labels_traefik_tls | to_json }}
 {% if cadvisor_container_labels_traefik_tls %}
 traefik.http.routers.{{ cadvisor_identifier }}.tls.certResolver={{ cadvisor_container_labels_traefik_tls_certResolver }}
 {% endif %}
+
+traefik.http.services.{{ cadvisor_identifier }}.loadbalancer.server.port={{ cadvisor_container_http_port }}
+
 {% endif %}
 
 {{ cadvisor_container_labels_additional_labels }}
