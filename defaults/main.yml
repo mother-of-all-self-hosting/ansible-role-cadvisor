@@ -112,7 +112,10 @@ cadvisor_systemd_required_services_list_auto: []
 cadvisor_systemd_required_services_list_custom: []
 
 # List of systemd services that the cAdvisor systemd service wants
-cadvisor_systemd_wanted_services_list: []
+cadvisor_systemd_wanted_services_list: "{{ cadvisor_systemd_wanted_services_list_default + cadvisor_systemd_wanted_services_list_auto + cadvisor_systemd_wanted_services_list_custom }}"
+cadvisor_systemd_wanted_services_list_default: []
+cadvisor_systemd_wanted_services_list_auto: []
+cadvisor_systemd_wanted_services_list_custom: []
 
 # Controls the `providers.docker.network` configuration option.
 cadvisor_config_providers_docker_network: "{{ devture_traefik_container_network }}"
