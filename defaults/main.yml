@@ -117,6 +117,9 @@ cadvisor_systemd_wanted_services_list_default: []
 cadvisor_systemd_wanted_services_list_auto: []
 cadvisor_systemd_wanted_services_list_custom: []
 
+# Specify the timezone
+cadvisor_environment_variables_tz: UTC
+
 # Controls the `providers.docker.network` configuration option.
 cadvisor_config_providers_docker_network: "{{ devture_traefik_container_network }}"
 
