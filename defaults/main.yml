@@ -21,8 +21,10 @@ cadvisor_version: v0.52.1
 cadvisor_uid: ""
 cadvisor_gid: ""
 
-# You don't need to configure a hostname and path prefix if you're not exposing this.
+# The hostname at which cAdvisor is served.
 cadvisor_hostname: ""
+
+# The path at which cAdvisor is served.
 cadvisor_path_prefix: ""
 
 cadvisor_container_image: "{{ cadvisor_container_image_registry_prefix }}cadvisor/cadvisor:{{ cadvisor_container_image_tag }}"
