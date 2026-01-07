@@ -36,4 +36,6 @@ traefik.http.services.{{ cadvisor_identifier }}.loadbalancer.server.port={{ cadv
 
 {% endif %}
 
-{{ cadvisor_container_labels_additional_labels }}
+{% for arg in cadvisor_container_labels_additional_labels %}
+{{ arg }}
+{% endfor %}
