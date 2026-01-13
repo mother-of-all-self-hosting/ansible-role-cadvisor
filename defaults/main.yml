@@ -34,8 +34,9 @@ cadvisor_container_image_registry_prefix_upstream: "{{ cadvisor_container_image_
 cadvisor_container_image_registry_prefix_upstream_default: gcr.io/
 cadvisor_container_image_force_pull: "{{ cadvisor_container_image.endswith(':latest') }}"
 
-# Controls whether the cAdvisor container exposes its HTTP port (tcp/8080 in the container).
-# Takes an "<ip>:<port>" value (e.g. "127.0.0.1:8080"), just a port number or empty string to not expose.
+# Controls whether the container exposes its HTTP port (tcp/8080 in the container).
+#
+# Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:2586"), or empty string to not expose.
 cadvisor_container_http_host_bind_port: ""
 
 # The base container network
