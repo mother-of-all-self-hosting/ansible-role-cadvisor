@@ -56,11 +56,7 @@ cadvisor_container_http_port: 8080
 
 # A list of additional container networks that the container would be connected to.
 # The role does not create these networks, so make sure they already exist.
-#
-# Use this to expose this container to another reverse proxy, which runs in a different container network,
-# without exposing all other container services to that other reverse-proxy.
-#
-# For background, see: https://github.com/spantaleev/matrix-docker-ansible-deploy/issues/1498
+# Use this to expose this container to another reverse proxy, which runs in a different container network.
 cadvisor_container_additional_networks: "{{ (cadvisor_container_additional_networks_auto + cadvisor_container_additional_networks_custom) | unique }}"
 cadvisor_container_additional_networks_auto: []
 cadvisor_container_additional_networks_custom: []
@@ -100,12 +96,7 @@ cadvisor_container_extra_arguments_auto: []
 cadvisor_container_extra_arguments_custom: []
 
 # A list of extra arguments to pass to the cAdvisor process
-#
-# Example:
-# cadvisor_process_extra_arguments:
-# --url_base_prefix=/: optional path prefix added to all resource URLs; useful when running cAdvisor behind a proxy. (default /)
-#
-# Note: the above is just an example. Various collectors may require various tweaks to be able to run.
+# Example: ['--SOME_ARGUMENT']
 # See https://github.com/google/cadvisor/blob/master/docs/runtime_options.md for more options
 cadvisor_process_extra_arguments: "{{ cadvisor_process_extra_arguments_auto + cadvisor_process_extra_arguments_custom }}"
 cadvisor_process_extra_arguments_auto: []
