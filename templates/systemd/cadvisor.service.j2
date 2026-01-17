@@ -25,6 +25,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --rm \
       --name {{ cadvisor_identifier }} \
       --log-driver=none \
+      --cap-drop=ALL \
       --network={{ cadvisor_container_network }} \
       {% if cadvisor_container_http_host_bind_port %}
       -p {{ cadvisor_container_http_host_bind_port }}:{{ cadvisor_container_http_port }} \
@@ -35,7 +36,6 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       {% if cadvisor_config_providers_docker_endpoint_is_unix_socket %}
       --mount type=bind,src={{ cadvisor_config_providers_docker_endpoint | replace('unix://', '') }},dst=/var/run/docker.sock,ro \
       {% else %}
-      --cap-drop=ALL \
       --mount type=bind,source=/var/run,destination=/var/run,ro \
       {% endif %}
       {% for arg in cadvisor_container_extra_arguments %}
