@@ -36,7 +36,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --mount type=bind,src={{ cadvisor_config_providers_docker_endpoint | replace('unix://', '') }},dst=/var/run/docker.sock,ro \
       {% else %}
       --cap-drop=ALL \
-      --mount type=bind,source=/var/run,destination=/var/run,readonly \
+      --mount type=bind,source=/var/run,destination=/var/run,ro \
       {% endif %}
       {% for arg in cadvisor_container_extra_arguments %}
       {{ arg }} \
