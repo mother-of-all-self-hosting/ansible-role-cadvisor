@@ -46,7 +46,7 @@ cadvisor_container_image_force_pull: "{{ cadvisor_container_image.endswith(':lat
 # For now, we'll live with that, until someone develops a better solution.
 cadvisor_container_network: "{{ cadvisor_identifier }}"
 
-# Controls whether the container exposes its HTTP port (tcp/8080 in the container).
+# Specify how the container publishes its HTTP port (as defined by `cadvisor_container_http_port`).
 #
 # Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:2586"), or empty string to not expose.
 cadvisor_container_http_host_bind_port: ""
