@@ -42,7 +42,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       {{ arg }} \
       {% endfor %}
       {{ cadvisor_container_image }} \
-      {{ cadvisor_process_extra_arguments|join(' ') }}
+      {{ cadvisor_process_extra_arguments | join(' ') }}
 
 {% for network in cadvisor_container_additional_networks %}
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} network connect {{ network }} {{ cadvisor_identifier }}
