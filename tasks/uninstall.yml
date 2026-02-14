@@ -30,6 +30,7 @@
       community.docker.docker_network:
         name: "{{ cadvisor_container_network }}"
         state: absent
+      register: cadvisor_network_deletion_result
 
     - name: Ensure cAdvisor container network does not exist via ansible.builtin.command
       when: devture_systemd_docker_base_container_network_creation_method == 'command'
@@ -37,8 +38,8 @@
         cmd: >-
           {{ devture_systemd_docker_base_host_command_docker }} network rm
           {{ cadvisor_container_network }}
-      register: network_deletion_result
-      changed_when: cadvisor_container_network in network_deletion_result.stdout
+      register: cadvisor_network_deletion_result
+      changed_when: cadvisor_container_network in cadvisor_network_deletion_result.stdout
 
     - name: Ensure cAdvisor path does not exist
       ansible.builtin.file:
