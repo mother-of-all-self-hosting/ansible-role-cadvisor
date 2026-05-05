@@ -32,7 +32,6 @@ cadvisor_container_image_tag: "{{ cadvisor_version }}"
 cadvisor_container_image_registry_prefix: "{{ cadvisor_container_image_registry_prefix_upstream }}"
 cadvisor_container_image_registry_prefix_upstream: "{{ cadvisor_container_image_registry_prefix_upstream_default }}"
 cadvisor_container_image_registry_prefix_upstream_default: gcr.io/
-cadvisor_container_image_force_pull: "{{ cadvisor_container_image.endswith(':latest') }}"
 
 # The base container network
 #
