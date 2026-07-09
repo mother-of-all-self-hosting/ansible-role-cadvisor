@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2023 Slavi Pantaleev
 # SPDX-FileCopyrightText: 2024 sudo-tiz
+# SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -13,6 +14,8 @@
   with_items:
     - { "old": "cadvisor_docker_image", "new": "cadvisor_container_image" }
     - { "old": "cadvisor_docker_image_name_prefix", "new": "cadvisor_container_image_registry_prefix" }
+    - { "old": "cadvisor_container_labels_middleware_basic_auth_enabled", "new": "cadvisor_container_labels_traefik_middleware_basic_auth_enabled" }
+    - { "old": "cadvisor_container_labels_middleware_basic_auth_users", "new": "cadvisor_container_labels_traefik_middleware_basic_auth_users" }
     - { "old": "cadvisor_environment_variables_extension", "new": "cadvisor_environment_variables_additional_variables" }
     - { "old": "cadvisor_container_image_force_pull", "new": "<removed> (the new community.docker.docker_image_pull module handles this natively)" }
 
@@ -32,11 +35,12 @@
     - name: Fail if Traefik settings required for cAdvisor are not defined
       ansible.builtin.fail:
         msg: >-
-          You need to define a required configuration setting (`{{ item }}`).
-      when: "lookup('vars', item, default='') | string | length == 0"
+          You need to define a required configuration setting (`{{ item.name }}`).
+      when: "item.when | bool and lookup('vars', item.name, default='') | string | length == 0"
       with_items:
-        - cadvisor_container_labels_traefik_hostname
-        - cadvisor_container_labels_traefik_path_prefix
+        - { "name": "cadvisor_container_labels_traefik_hostname", when: true }
+        - { "name": "cadvisor_container_labels_traefik_path_prefix", when: true }
+        - { "name": "cadvisor_container_labels_traefik_middleware_basic_auth_users", when: "{{ cadvisor_container_labels_traefik_middleware_basic_auth_enabled }}" }
 
     # We ensure it doesn't end with a slash, because we handle both (slash and no-slash).
     # Knowing that `cadvisor_container_labels_traefik_path_prefix` does not end with a slash

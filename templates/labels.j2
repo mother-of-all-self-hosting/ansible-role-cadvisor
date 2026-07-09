@@ -1,5 +1,7 @@
 {#
+SPDX-FileCopyrightText: 2023 Slavi Pantaleev
 SPDX-FileCopyrightText: 2024 sudo-tiz
+SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
 
 SPDX-License-Identifier: AGPL-3.0-or-later
 #}
@@ -13,9 +15,9 @@ traefik.docker.network={{ cadvisor_container_labels_traefik_docker_network }}
 
 {% set middlewares = [] %}
 
-{% if cadvisor_container_labels_middleware_basic_auth_enabled %}
+{% if cadvisor_container_labels_traefik_middleware_basic_auth_enabled %}
 {% set middlewares = middlewares + [cadvisor_identifier + '-basic-auth'] %}
-traefik.http.middlewares.{{ cadvisor_identifier }}-basic-auth.basicauth.users={{ cadvisor_container_labels_middleware_basic_auth_users }}
+traefik.http.middlewares.{{ cadvisor_identifier }}-basic-auth.basicauth.users={{ cadvisor_container_labels_traefik_middleware_basic_auth_users }}
 {% endif %}
 
 traefik.http.routers.{{ cadvisor_identifier }}.rule={{ cadvisor_container_labels_traefik_rule }}

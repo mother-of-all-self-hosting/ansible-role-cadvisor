@@ -76,9 +76,9 @@ cadvisor_container_labels_traefik_rule: "Host(`{{ cadvisor_container_labels_trae
 cadvisor_container_labels_traefik_entrypoints: web-secure
 cadvisor_container_labels_traefik_tls: "{{ cadvisor_container_labels_traefik_entrypoints != 'web' }}"
 cadvisor_container_labels_traefik_tls_certResolver: default # noqa var-naming
-cadvisor_container_labels_middleware_basic_auth_enabled: false
+cadvisor_container_labels_traefik_middleware_basic_auth_enabled: false
 # See: https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/basicauth/
-cadvisor_container_labels_middleware_basic_auth_users: ""
+cadvisor_container_labels_traefik_middleware_basic_auth_users: ""
 
 # cadvisor_container_labels_additional_labels contains a multiline string with additional labels to add to the container label file.
 # See `../templates/labels.j2` for details.
