@@ -25,7 +25,7 @@ cadvisor_gid: ""
 cadvisor_hostname: ""
 
 # The path at which cAdvisor is served.
-cadvisor_path_prefix: ""
+cadvisor_path_prefix: /
 
 cadvisor_container_image: "{{ cadvisor_container_image_registry_prefix }}cadvisor/cadvisor:{{ cadvisor_container_image_tag }}"
 cadvisor_container_image_tag: "{{ cadvisor_version }}"
@@ -70,15 +70,36 @@ cadvisor_container_additional_networks_custom: []
 cadvisor_container_labels_traefik_enabled: "{{ true if cadvisor_hostname else false }}"
 cadvisor_container_labels_traefik_docker_network: "{{ cadvisor_container_network }}"
 cadvisor_container_labels_traefik_hostname: "{{ cadvisor_hostname }}"
-# The path prefix must either be `/` or not end with a slash (e.g. `/metrics`).
+# The path prefix must either be `/` or not end with a slash (e.g. `/cadvisor`).
 cadvisor_container_labels_traefik_path_prefix: "{{ cadvisor_path_prefix }}"
-cadvisor_container_labels_traefik_rule: "Host(`{{ cadvisor_container_labels_traefik_hostname }}`) && PathPrefix(`{{ cadvisor_container_labels_traefik_path_prefix | quote }}`)"
+cadvisor_container_labels_traefik_rule: "Host(`{{ cadvisor_container_labels_traefik_hostname }}`){% if cadvisor_container_labels_traefik_path_prefix != '/' %} && PathPrefix(`{{ cadvisor_container_labels_traefik_path_prefix }}`){% endif %}"
+cadvisor_container_labels_traefik_priority: 0
 cadvisor_container_labels_traefik_entrypoints: web-secure
 cadvisor_container_labels_traefik_tls: "{{ cadvisor_container_labels_traefik_entrypoints != 'web' }}"
-cadvisor_container_labels_traefik_tls_certResolver: default # noqa var-naming
+cadvisor_container_labels_traefik_tls_certResolver: default  # noqa var-naming
 cadvisor_container_labels_traefik_middleware_basic_auth_enabled: false
 # See: https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/basicauth/
 cadvisor_container_labels_traefik_middleware_basic_auth_users: ""
+
+# Controls which additional headers to attach to all HTTP requests.
+# To add your own custom request headers, use `cadvisor_container_labels_traefik_additional_request_headers_custom`
+cadvisor_container_labels_traefik_additional_request_headers: "{{ cadvisor_container_labels_traefik_additional_request_headers_auto | combine(cadvisor_container_labels_traefik_additional_request_headers_custom) }}"
+cadvisor_container_labels_traefik_additional_request_headers_auto: {}
+cadvisor_container_labels_traefik_additional_request_headers_custom: {}
+
+# Controls which additional headers to attach to all HTTP responses.
+# To add your own custom response headers, use `cadvisor_container_labels_traefik_additional_response_headers_custom`
+cadvisor_container_labels_traefik_additional_response_headers: "{{ cadvisor_container_labels_traefik_additional_response_headers_auto | combine(cadvisor_container_labels_traefik_additional_response_headers_custom) }}"
+cadvisor_container_labels_traefik_additional_response_headers_auto: |
+  {{
+    {}
+    | combine ({'X-XSS-Protection': cadvisor_http_header_xss_protection} if cadvisor_http_header_xss_protection else {})
+    | combine ({'X-Content-Type-Options': cadvisor_http_header_content_type_options} if cadvisor_http_header_content_type_options else {})
+    | combine ({'Content-Security-Policy': cadvisor_http_header_content_security_policy} if cadvisor_http_header_content_security_policy else {})
+    | combine ({'Permissions-Policy': cadvisor_http_header_permissions_policy} if cadvisor_http_header_permissions_policy else {})
+    | combine ({'Strict-Transport-Security': cadvisor_http_header_strict_transport_security} if cadvisor_http_header_strict_transport_security and cadvisor_container_labels_traefik_tls else {})
+  }}
+cadvisor_container_labels_traefik_additional_response_headers_custom: {}
 
 # cadvisor_container_labels_additional_labels contains a multiline string with additional labels to add to the container label file.
 # See `../templates/labels.j2` for details.
@@ -103,6 +124,53 @@ cadvisor_container_extra_arguments_custom: []
 cadvisor_process_extra_arguments: "{{ cadvisor_process_extra_arguments_auto + cadvisor_process_extra_arguments_custom }}"
 cadvisor_process_extra_arguments_auto: []
 cadvisor_process_extra_arguments_custom: []
+
+# Specifies the value of the `X-XSS-Protection` header
+# Stops pages from loading when they detect reflected cross-site scripting (XSS) attacks.
+#
+# Learn more about it is here:
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
+# - https://portswigger.net/web-security/cross-site-scripting/reflected
+cadvisor_http_header_xss_protection: "1; mode=block"
+
+# Specifies the value of the `X-Content-Type-Options` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+cadvisor_http_header_content_type_options: nosniff
+
+# Specifies the value of the `Content-Security-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+cadvisor_http_header_content_security_policy: frame-ancestors 'self'
+
+# Specifies the value of the `Permissions-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy
+cadvisor_http_header_permissions_policy: "{{ 'interest-cohort=()' if cadvisor_floc_optout_enabled else '' }}"
+
+# Specifies the value of the `Strict-Transport-Security` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+cadvisor_http_header_strict_transport_security: "max-age=31536000; includeSubDomains{{ '; preload' if cadvisor_hsts_preload_enabled else '' }}"
+
+# Controls whether to send a "Permissions-Policy interest-cohort=();" header along with all responses
+#
+# Learn more about what it is here:
+# - https://www.eff.org/deeplinks/2021/03/googles-floc-terrible-idea
+# - https://paramdeo.com/blog/opting-your-website-out-of-googles-floc-network
+# - https://amifloced.org/
+#
+# Of course, a better solution is to just stop using browsers (like Chrome), which participate in such tracking practices.
+# See: `cadvisor_http_header_permissions_policy`
+cadvisor_floc_optout_enabled: true
+
+# Controls if HSTS preloading is enabled
+#
+# In its strongest and recommended form, the [HSTS policy](https://www.chromium.org/hsts) includes all subdomains, and
+# indicates a willingness to be "preloaded" into browsers:
+# `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`
+# For more information visit:
+# - https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+# - https://hstspreload.org/#opt-in
+# See: `cadvisor_http_header_strict_transport_security`
+cadvisor_hsts_preload_enabled: false
 
 # List of systemd services that the cAdvisor systemd service depends on
 cadvisor_systemd_required_services_list: "{{ cadvisor_systemd_required_services_list_default + cadvisor_systemd_required_services_list_auto + cadvisor_systemd_required_services_list_custom }}"
