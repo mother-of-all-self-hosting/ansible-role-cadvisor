@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Suguru Hirahara
 # SPDX-FileCopyrightText: 2026 spatterlight
+# SPDX-FileCopyrightText: 2026 Slavi Pantaleev
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -31,12 +32,49 @@ provisioner:
         # Helper variables
         cadvisor_debug_service_enabled: false
 
+        # The port on the host side of the container that the test container's
+        # own Docker daemon runs on. cAdvisor is published there so that the
+        # verifier can reach it over HTTP.
+        cadvisor_molecule_http_bind_port: 8080
+
+        # The name of a container that this scenario starts (see prepare.yml)
+        # purely so that the verifier has a container with a known name to look
+        # for in cAdvisor's view of the container runtime.
+        cadvisor_molecule_observed_container_name: cadvisor-molecule-observed
+
+        # The image of that container. Anything that can be told to sit still
+        # does, so the smallest one available is used.
+        # renovate: datasource=docker depName=docker.io/library/busybox
+        cadvisor_molecule_observed_container_image: docker.io/library/busybox:1.37.0
+
         # Variables for cAdvisor
         cadvisor_uid: 1000
         cadvisor_gid: 1000
         cadvisor_hostname: localhost
         cadvisor_container_labels_traefik_enabled: false
-        cadvisor_container_http_host_bind_port: 8080
+        cadvisor_container_http_host_bind_port: "127.0.0.1:{{ cadvisor_molecule_http_bind_port }}"
+
+        # By default the role gives the container nothing but the Docker
+        # socket, which is not enough for cAdvisor to observe anything. Each of
+        # the three mounts below covers a distinct thing it turns out to need,
+        # and leaving any of them out was observed to produce a cAdvisor that
+        # still starts, still answers /healthz with a 200 and still reports
+        # real machine information, while reporting not a single container:
+        #
+        # - containerd's socket, without which the Docker container factory
+        #   does not register at all ("unable to create containerd client")
+        # - the full sysfs, without which the cgroup hierarchy that the
+        #   per-container statistics are computed from is not readable
+        # - Docker's data directory, without which cAdvisor finds the cgroups
+        #   but cannot resolve a container's read-write layer, and drops every
+        #   container it found ("failed to identify the read-write layer ID")
+        #
+        # Passing them through the role's own extra-arguments knob is what lets
+        # verify.yml assert real observation rather than mere liveness.
+        cadvisor_container_extra_arguments_custom:
+          - "--mount type=bind,src=/run/containerd/containerd.sock,dst=/run/containerd/containerd.sock,ro"
+          - "--mount type=bind,src=/sys,dst=/sys,ro"
+          - "--mount type=bind,src=/var/lib/docker,dst=/var/lib/docker,ro"
   env:
     # Workaround for https://github.com/ansible/molecule/issues/4391
     ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/..:/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:~/.ansible/roles

@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Suguru Hirahara
 # SPDX-FileCopyrightText: 2026 spatterlight
+# SPDX-FileCopyrightText: 2026 Slavi Pantaleev
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -27,3 +28,28 @@
       vars:
         docker_daemon_options:
           storage-driver: vfs
+
+    # cAdvisor's whole purpose is to report on the containers of the Docker
+    # daemon it is pointed at. Inside the test container that daemon is the one
+    # installed just above, so a container started here is exactly the kind of
+    # workload cAdvisor is expected to observe once the role has configured it.
+    #
+    # It is started before the role runs, so that it is already there when
+    # cAdvisor first enumerates the runtime, and it is given a name that
+    # verify.yml can look for. `docker` is driven through the CLI rather than
+    # through community.docker, because the linting environment in CI has no
+    # collections installed.
+    - name: Ensure a previous observed container is gone
+      ansible.builtin.command:
+        cmd: "docker rm --force {{ cadvisor_molecule_observed_container_name }}"
+      changed_when: false
+      failed_when: false
+
+    - name: Ensure the container that cAdvisor is expected to observe is running
+      ansible.builtin.command:
+        cmd: >-
+          docker run --detach
+          --name {{ cadvisor_molecule_observed_container_name }}
+          {{ cadvisor_molecule_observed_container_image }}
+          sleep 3600
+      changed_when: true
