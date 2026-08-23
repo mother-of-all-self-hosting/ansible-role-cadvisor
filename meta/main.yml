@@ -2,6 +2,7 @@
 galaxy_info:
   author: sudo-tiz
   role_name: cadvisor
+  namespace: mash
   description: cadvisor
   platforms:
     - name: Debian
