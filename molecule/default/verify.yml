@@ -169,7 +169,7 @@
         fail_msg: "cAdvisor reports {{ cadvisor_attributes.json.cadvisor_version | default('none') }}, expected {{ cadvisor_defaults.cadvisor_version }}"
         success_msg: "cAdvisor reports {{ cadvisor_attributes.json.cadvisor_version }}"
 
-    - name: Show cAdvisor verification summary
+    - name: Show the cAdvisor verification summary
       ansible.builtin.debug:
         msg:
           - "cAdvisor systemd: {{ cadvisor_service.status.ActiveState }}"
