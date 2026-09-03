@@ -221,6 +221,10 @@ cadvisor_config_providers_docker_network: "{{ devture_traefik_container_network 
 # Controls the `providers.docker.endpoint` configuration option.
 cadvisor_config_providers_docker_endpoint: unix:///var/run/docker.sock
 
+# Specifies whether the docker endpoint is a UNIX socket or not.
+# When a socket is used, we need to run the Traefik container with more privileges, so that it can read via the socket.
+cadvisor_config_providers_docker_endpoint_is_unix_socket: "{{ cadvisor_config_providers_docker_endpoint.startswith('unix://') }}"
+
 # Specify the timezone
 cadvisor_environment_variables_tz: UTC
 
