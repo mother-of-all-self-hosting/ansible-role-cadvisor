@@ -163,7 +163,7 @@
         return_content: true
       register: cadvisor_attributes
 
-    - name: Assert the running cAdvisor is the version the role asks for
+    - name: Assert the running cAdvisor is the version this role installs
       ansible.builtin.assert:
         that: >-
           (cadvisor_attributes.json.cadvisor_version | regex_replace('^v', ''))
