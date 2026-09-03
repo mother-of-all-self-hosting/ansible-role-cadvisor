@@ -165,13 +165,9 @@
 
     - name: Assert the running cAdvisor is the version this role installs
       ansible.builtin.assert:
-        that: >-
-          (cadvisor_attributes.json.cadvisor_version | regex_replace('^v', ''))
-          == (cadvisor_defaults.cadvisor_version | regex_replace('^v', ''))
-        fail_msg: >-
-          cAdvisor reports version {{ cadvisor_attributes.json.cadvisor_version | default('none') }},
-          but the role asks for {{ cadvisor_defaults.cadvisor_version }}
-        success_msg: "cAdvisor reports version {{ cadvisor_attributes.json.cadvisor_version }}"
+        that: "(cadvisor_attributes.json.cadvisor_version | regex_replace('^v', '')) == (cadvisor_defaults.cadvisor_version | regex_replace('^v', ''))"
+        fail_msg: "cAdvisor reports {{ cadvisor_attributes.json.cadvisor_version | default('none') }}, expected {{ cadvisor_defaults.cadvisor_version }}"
+        success_msg: "cAdvisor reports {{ cadvisor_attributes.json.cadvisor_version }}"
 
     - name: Show cAdvisor verification summary
       ansible.builtin.debug:
