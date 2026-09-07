@@ -59,6 +59,22 @@
         fail_msg: "cAdvisor did not report itself healthy ({{ cadvisor_healthz.status | default('no response') }})"
         success_msg: "cAdvisor reports itself healthy"
 
+    - name: Query the version of the running cAdvisor
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/api/v2.0/attributes"
+        method: GET
+        return_content: true
+      register: cadvisor_attributes
+
+    # cAdvisor reports its version with a leading `v` (`v0.55.1`), the same way
+    # the role's version variable carries one. Any leading `v` is normalized
+    # away on both sides, so that this keeps holding if either side ever changes.
+    - name: Assert the running cAdvisor is the version this role installs
+      ansible.builtin.assert:
+        that: "(cadvisor_attributes.json.cadvisor_version | regex_replace('^v', '')) == (cadvisor_defaults.cadvisor_version | regex_replace('^v', ''))"
+        fail_msg: "cAdvisor reports {{ cadvisor_attributes.json.cadvisor_version | default('none') }}, expected {{ cadvisor_defaults.cadvisor_version }}"
+        success_msg: "cAdvisor reports {{ cadvisor_attributes.json.cadvisor_version }}"
+
     # The machine information is read from the host's /proc and /sys rather
     # than served from a static payload, so plausible values here mean cAdvisor
     # is genuinely inspecting the machine it runs on. This much a cAdvisor with
@@ -142,22 +158,6 @@
             )
         fail_msg: "cAdvisor exposes no per-container metrics for {{ cadvisor_molecule_observed_container_name }}"
         success_msg: "cAdvisor exposes per-container metrics for {{ cadvisor_molecule_observed_container_name }}"
-
-    - name: Query the version of the running cAdvisor
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/api/v2.0/attributes"
-        method: GET
-        return_content: true
-      register: cadvisor_attributes
-
-    # cAdvisor reports its version with a leading `v` (`v0.55.1`), the same way
-    # the role's version variable carries one. Any leading `v` is normalized
-    # away on both sides, so that this keeps holding if either side ever changes.
-    - name: Assert the running cAdvisor is the version this role installs
-      ansible.builtin.assert:
-        that: "(cadvisor_attributes.json.cadvisor_version | regex_replace('^v', '')) == (cadvisor_defaults.cadvisor_version | regex_replace('^v', ''))"
-        fail_msg: "cAdvisor reports {{ cadvisor_attributes.json.cadvisor_version | default('none') }}, expected {{ cadvisor_defaults.cadvisor_version }}"
-        success_msg: "cAdvisor reports {{ cadvisor_attributes.json.cadvisor_version }}"
 
     - name: Show the cAdvisor verification summary
       ansible.builtin.debug:
