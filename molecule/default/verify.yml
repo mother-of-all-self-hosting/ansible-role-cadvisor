@@ -152,8 +152,7 @@
 
     # cAdvisor reports its version with a leading `v` (`v0.55.1`), the same way
     # the role's version variable carries one. Any leading `v` is normalized
-    # away on both sides, so that this keeps holding if either side ever stops
-    # carrying one.
+    # away on both sides, so that this keeps holding if either side ever changes.
     - name: Assert the running cAdvisor is the version this role installs
       ansible.builtin.assert:
         that: "(cadvisor_attributes.json.cadvisor_version | regex_replace('^v', '')) == (cadvisor_defaults.cadvisor_version | regex_replace('^v', ''))"
