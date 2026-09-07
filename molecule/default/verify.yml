@@ -143,10 +143,6 @@
         fail_msg: "cAdvisor exposes no per-container metrics for {{ cadvisor_molecule_observed_container_name }}"
         success_msg: "cAdvisor exposes per-container metrics for {{ cadvisor_molecule_observed_container_name }}"
 
-    # Tying the running version to `cadvisor_version` is what makes this
-    # scenario a real test of the version that Renovate bumps: a bump that
-    # produces an unusable image cannot pass here.
-    #
     # cAdvisor reports its version with a leading `v` (`v0.55.1`), the same way
     # the role's version variable carries one. Any leading `v` is normalized
     # away on both sides, so that this keeps holding if either side ever stops
