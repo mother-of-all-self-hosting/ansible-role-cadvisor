@@ -151,7 +151,7 @@
     # the role's version variable carries one. Any leading `v` is normalized
     # away on both sides, so that this keeps holding if either side ever stops
     # carrying one.
-    - name: Query the version that the running cAdvisor reports
+    - name: Query the version of the running cAdvisor
       ansible.builtin.uri:
         url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/api/v2.0/attributes"
         method: GET
