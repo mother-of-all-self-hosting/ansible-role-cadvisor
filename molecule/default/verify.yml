@@ -143,10 +143,6 @@
         fail_msg: "cAdvisor exposes no per-container metrics for {{ cadvisor_molecule_observed_container_name }}"
         success_msg: "cAdvisor exposes per-container metrics for {{ cadvisor_molecule_observed_container_name }}"
 
-    # cAdvisor reports its version with a leading `v` (`v0.55.1`), the same way
-    # the role's version variable carries one. Any leading `v` is normalized
-    # away on both sides, so that this keeps holding if either side ever stops
-    # carrying one.
     - name: Query the version of the running cAdvisor
       ansible.builtin.uri:
         url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/api/v2.0/attributes"
@@ -154,6 +150,10 @@
         return_content: true
       register: cadvisor_attributes
 
+    # cAdvisor reports its version with a leading `v` (`v0.55.1`), the same way
+    # the role's version variable carries one. Any leading `v` is normalized
+    # away on both sides, so that this keeps holding if either side ever stops
+    # carrying one.
     - name: Assert the running cAdvisor is the version this role installs
       ansible.builtin.assert:
         that: "(cadvisor_attributes.json.cadvisor_version | regex_replace('^v', '')) == (cadvisor_defaults.cadvisor_version | regex_replace('^v', ''))"
