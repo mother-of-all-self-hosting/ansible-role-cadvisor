@@ -48,7 +48,7 @@
     - name: Ensure the container that cAdvisor is expected to observe is running
       ansible.builtin.command:
         cmd: >-
-          docker run --detach
+          docker run -d
           --name {{ cadvisor_molecule_observed_container_name }}
           {{ cadvisor_molecule_observed_container_image }}
           sleep 3600
