@@ -13,167 +13,167 @@
   tasks:
     - name: Verify that cAdvisor works
       block:
-    # The role is not included in this playbook, so its defaults are not in
-    # scope. Reading defaults/main.yml directly ties the version assertion
-    # below.
-    - name: Load the role defaults
-      ansible.builtin.include_vars:
-        file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
-        name: cadvisor_defaults
+        # The role is not included in this playbook, so its defaults are not in
+        # scope. Reading defaults/main.yml directly ties the version assertion
+        # below.
+        - name: Load the role defaults
+          ansible.builtin.include_vars:
+            file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
+            name: cadvisor_defaults
 
-    - name: Wait for the cAdvisor systemd service to become active (up to 180s)
-      ansible.builtin.systemd_service:
-        name: cadvisor.service
-      register: cadvisor_service
-      until: cadvisor_service.status.ActiveState == 'active'
-      retries: 36
-      delay: 5
-      # So that giving up is reported by the assertion below rather than as a
-      # wall of systemd unit properties.
-      failed_when: false
+        - name: Wait for the cAdvisor systemd service to become active (up to 180s)
+          ansible.builtin.systemd_service:
+            name: cadvisor.service
+          register: cadvisor_service
+          until: cadvisor_service.status.ActiveState == 'active'
+          retries: 36
+          delay: 5
+          # So that giving up is reported by the assertion below rather than as a
+          # wall of systemd unit properties.
+          failed_when: false
 
-    # `Restart=always` in the systemd unit means that even a container which crashes
-    # and gets restarted reads as active here, so this is a precondition rather than
-    # a result.
-    - name: Assert the cAdvisor systemd service is active
-      ansible.builtin.assert:
-        that: cadvisor_service.status.ActiveState == 'active'
-        fail_msg: "cadvisor.service is not active ({{ cadvisor_service.status.ActiveState }})"
-        success_msg: "cadvisor.service is active"
+        # `Restart=always` in the systemd unit means that even a container which crashes
+        # and gets restarted reads as active here, so this is a precondition rather than
+        # a result.
+        - name: Assert the cAdvisor systemd service is active
+          ansible.builtin.assert:
+            that: cadvisor_service.status.ActiveState == 'active'
+            fail_msg: "cadvisor.service is not active ({{ cadvisor_service.status.ActiveState }})"
+            success_msg: "cadvisor.service is active"
 
-    - name: Retrieve the cAdvisor systemd service log for debugging
-      when: cadvisor_debug_service_enabled | bool
-      ansible.builtin.command:
-        cmd: journalctl --no-pager --output=cat --unit=cadvisor.service
-      changed_when: false
+        - name: Retrieve the cAdvisor systemd service log for debugging
+          when: cadvisor_debug_service_enabled | bool
+          ansible.builtin.command:
+            cmd: journalctl --no-pager --output=cat --unit=cadvisor.service
+          changed_when: false
 
-    # A systemd unit reaching "active" only means that `docker start` has not
-    # exited yet. /healthz is the cheapest answer the cAdvisor process itself
-    # can give, so it is the first thing here that proves a serving cAdvisor
-    # rather than merely a running container.
-    - name: Wait for cAdvisor to report itself healthy (up to 180s)
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/healthz"
-        method: GET
-        return_content: true
-      register: cadvisor_healthz
-      until: cadvisor_healthz.status == 200
-      retries: 36
-      delay: 5
+        # A systemd unit reaching "active" only means that `docker start` has not
+        # exited yet. /healthz is the cheapest answer the cAdvisor process itself
+        # can give, so it is the first thing here that proves a serving cAdvisor
+        # rather than merely a running container.
+        - name: Wait for cAdvisor to report itself healthy (up to 180s)
+          ansible.builtin.uri:
+            url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/healthz"
+            method: GET
+            return_content: true
+          register: cadvisor_healthz
+          until: cadvisor_healthz.status == 200
+          retries: 36
+          delay: 5
 
-    - name: Assert cAdvisor reports itself healthy
-      ansible.builtin.assert:
-        that: cadvisor_healthz.status == 200
-        fail_msg: "cAdvisor did not report itself healthy ({{ cadvisor_healthz.status | default('no response') }})"
-        success_msg: "cAdvisor reports itself healthy"
+        - name: Assert cAdvisor reports itself healthy
+          ansible.builtin.assert:
+            that: cadvisor_healthz.status == 200
+            fail_msg: "cAdvisor did not report itself healthy ({{ cadvisor_healthz.status | default('no response') }})"
+            success_msg: "cAdvisor reports itself healthy"
 
-    - name: Query the version of the running cAdvisor
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/api/v2.0/attributes"
-        method: GET
-        return_content: true
-      register: cadvisor_attributes
+        - name: Query the version of the running cAdvisor
+          ansible.builtin.uri:
+            url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/api/v2.0/attributes"
+            method: GET
+            return_content: true
+          register: cadvisor_attributes
 
-    # cAdvisor reports its version with a leading `v` (`v0.55.1`), the same way
-    # the role's version variable carries one. Any leading `v` is normalized
-    # away on both sides, so that this keeps holding if either side ever changes.
-    - name: Assert the running cAdvisor is the version this role installs
-      ansible.builtin.assert:
-        that: "(cadvisor_attributes.json.cadvisor_version | regex_replace('^v', '')) == (cadvisor_defaults.cadvisor_version | regex_replace('^v', ''))"
-        fail_msg: "cAdvisor reports {{ cadvisor_attributes.json.cadvisor_version | default('none') }}, expected {{ cadvisor_defaults.cadvisor_version }}"
-        success_msg: "cAdvisor reports {{ cadvisor_attributes.json.cadvisor_version }}"
+        # cAdvisor reports its version with a leading `v` (`v0.55.1`), the same way
+        # the role's version variable carries one. Any leading `v` is normalized
+        # away on both sides, so that this keeps holding if either side ever changes.
+        - name: Assert the running cAdvisor is the version this role installs
+          ansible.builtin.assert:
+            that: "(cadvisor_attributes.json.cadvisor_version | regex_replace('^v', '')) == (cadvisor_defaults.cadvisor_version | regex_replace('^v', ''))"
+            fail_msg: "cAdvisor reports {{ cadvisor_attributes.json.cadvisor_version | default('none') }}, expected {{ cadvisor_defaults.cadvisor_version }}"
+            success_msg: "cAdvisor reports {{ cadvisor_attributes.json.cadvisor_version }}"
 
-    # The machine information is read from the host's /proc and /sys rather
-    # than served from a static payload, so plausible values here mean cAdvisor
-    # is genuinely inspecting the machine it runs on. This much a cAdvisor with
-    # no access to the container runtime also manages, which is precisely why
-    # it is not the last probe.
-    - name: Query the machine information that cAdvisor reports
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/api/v1.3/machine"
-        method: GET
-        return_content: true
-      register: cadvisor_machine
+        # The machine information is read from the host's /proc and /sys rather
+        # than served from a static payload, so plausible values here mean cAdvisor
+        # is genuinely inspecting the machine it runs on. This much a cAdvisor with
+        # no access to the container runtime also manages, which is precisely why
+        # it is not the last probe.
+        - name: Query the machine information that cAdvisor reports
+          ansible.builtin.uri:
+            url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/api/v1.3/machine"
+            method: GET
+            return_content: true
+          register: cadvisor_machine
 
-    - name: Assert cAdvisor reports real machine information
-      ansible.builtin.assert:
-        that:
-          - cadvisor_machine.json.num_cores | int > 0
-          - cadvisor_machine.json.memory_capacity | int > 0
-        fail_msg: >-
-          cAdvisor did not report usable machine information
-          (cores: {{ cadvisor_machine.json.num_cores | default('none') }},
-          memory: {{ cadvisor_machine.json.memory_capacity | default('none') }})
-        success_msg: >-
-          cAdvisor reports {{ cadvisor_machine.json.num_cores }} cores
-          and {{ cadvisor_machine.json.memory_capacity }} bytes of memory
+        - name: Assert cAdvisor reports real machine information
+          ansible.builtin.assert:
+            that:
+              - cadvisor_machine.json.num_cores | int > 0
+              - cadvisor_machine.json.memory_capacity | int > 0
+            fail_msg: >-
+              cAdvisor did not report usable machine information
+              (cores: {{ cadvisor_machine.json.num_cores | default('none') }},
+              memory: {{ cadvisor_machine.json.memory_capacity | default('none') }})
+            success_msg: >-
+              cAdvisor reports {{ cadvisor_machine.json.num_cores }} cores
+              and {{ cadvisor_machine.json.memory_capacity }} bytes of memory
 
-    # The point of the role. A cAdvisor that cannot reach the container runtime
-    # registers no container factory and reports an empty object here, while
-    # still answering every probe above exactly as it does now - that is the
-    # false pass this probe exists to rule out.
-    #
-    # The container looked for is the one prepare.yml started, identified by
-    # name: it is a workload cAdvisor had no part in creating, so finding it
-    # proves that what the role hands the container is enough to observe the
-    # runtime rather than merely enough to serve HTTP.
-    - name: Wait for cAdvisor to report on the containers it observes (up to 120s)
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/api/v1.3/docker/"
-        method: GET
-        return_content: true
-      register: cadvisor_docker
-      until: >-
-        cadvisor_docker.status == 200
-        and cadvisor_molecule_observed_container_name
-            in (cadvisor_docker.json.values() | map(attribute='aliases') | flatten)
-      retries: 24
-      delay: 5
+        # The point of the role. A cAdvisor that cannot reach the container runtime
+        # registers no container factory and reports an empty object here, while
+        # still answering every probe above exactly as it does now - that is the
+        # false pass this probe exists to rule out.
+        #
+        # The container looked for is the one prepare.yml started, identified by
+        # name: it is a workload cAdvisor had no part in creating, so finding it
+        # proves that what the role hands the container is enough to observe the
+        # runtime rather than merely enough to serve HTTP.
+        - name: Wait for cAdvisor to report on the containers it observes (up to 120s)
+          ansible.builtin.uri:
+            url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/api/v1.3/docker/"
+            method: GET
+            return_content: true
+          register: cadvisor_docker
+          until: >-
+            cadvisor_docker.status == 200
+            and cadvisor_molecule_observed_container_name
+                in (cadvisor_docker.json.values() | map(attribute='aliases') | flatten)
+          retries: 24
+          delay: 5
 
-    - name: Determine the names of the containers cAdvisor observes
-      ansible.builtin.set_fact:
-        cadvisor_observed_names: "{{ cadvisor_docker.json.values() | map(attribute='aliases') | flatten }}"
+        - name: Determine the names of the containers cAdvisor observes
+          ansible.builtin.set_fact:
+            cadvisor_observed_names: "{{ cadvisor_docker.json.values() | map(attribute='aliases') | flatten }}"
 
-    - name: Assert cAdvisor observes the container that this scenario started
-      ansible.builtin.assert:
-        that: cadvisor_molecule_observed_container_name in cadvisor_observed_names
-        fail_msg: >-
-          cAdvisor does not observe {{ cadvisor_molecule_observed_container_name }}
-          (it observes: {{ cadvisor_observed_names | default([]) }})
-        success_msg: "cAdvisor observes {{ cadvisor_molecule_observed_container_name }}"
+        - name: Assert cAdvisor observes the container that this scenario started
+          ansible.builtin.assert:
+            that: cadvisor_molecule_observed_container_name in cadvisor_observed_names
+            fail_msg: >-
+              cAdvisor does not observe {{ cadvisor_molecule_observed_container_name }}
+              (it observes: {{ cadvisor_observed_names | default([]) }})
+            success_msg: "cAdvisor observes {{ cadvisor_molecule_observed_container_name }}"
 
-    # Observing a container is not the same as measuring it. The Prometheus
-    # endpoint is how consumers of this role actually consume cAdvisor, and a
-    # per-container series carrying the observed container's name is the proof
-    # that the cgroup hierarchy is readable and the statistics are real.
-    - name: Query the metrics that cAdvisor exposes
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/metrics"
-        method: GET
-        return_content: true
-      register: cadvisor_metrics
+        # Observing a container is not the same as measuring it. The Prometheus
+        # endpoint is how consumers of this role actually consume cAdvisor, and a
+        # per-container series carrying the observed container's name is the proof
+        # that the cgroup hierarchy is readable and the statistics are real.
+        - name: Query the metrics that cAdvisor exposes
+          ansible.builtin.uri:
+            url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/metrics"
+            method: GET
+            return_content: true
+          register: cadvisor_metrics
 
-    - name: Assert cAdvisor exposes per-container metrics for the observed container
-      ansible.builtin.assert:
-        that:
-          - >-
-            cadvisor_metrics.content is search(
-              'container_last_seen[{].*name="' ~ cadvisor_molecule_observed_container_name ~ '"'
-            )
-          - >-
-            cadvisor_metrics.content is search(
-              'container_memory_usage_bytes[{].*name="' ~ cadvisor_molecule_observed_container_name ~ '"'
-            )
-        fail_msg: "cAdvisor exposes no per-container metrics for {{ cadvisor_molecule_observed_container_name }}"
-        success_msg: "cAdvisor exposes per-container metrics for {{ cadvisor_molecule_observed_container_name }}"
+        - name: Assert cAdvisor exposes per-container metrics for the observed container
+          ansible.builtin.assert:
+            that:
+              - >-
+                cadvisor_metrics.content is search(
+                  'container_last_seen[{].*name="' ~ cadvisor_molecule_observed_container_name ~ '"'
+                )
+              - >-
+                cadvisor_metrics.content is search(
+                  'container_memory_usage_bytes[{].*name="' ~ cadvisor_molecule_observed_container_name ~ '"'
+                )
+            fail_msg: "cAdvisor exposes no per-container metrics for {{ cadvisor_molecule_observed_container_name }}"
+            success_msg: "cAdvisor exposes per-container metrics for {{ cadvisor_molecule_observed_container_name }}"
 
-    - name: Show the cAdvisor verification summary
-      ansible.builtin.debug:
-        msg:
-          - "cAdvisor systemd: {{ cadvisor_service.status.ActiveState }}"
-          - "cAdvisor version: {{ cadvisor_attributes.json.cadvisor_version }}"
-          - "cAdvisor cores: {{ cadvisor_machine.json.num_cores }}"
-          - "cAdvisor observes: {{ cadvisor_observed_names }}"
+        - name: Show the cAdvisor verification summary
+          ansible.builtin.debug:
+            msg:
+              - "cAdvisor systemd: {{ cadvisor_service.status.ActiveState }}"
+              - "cAdvisor version: {{ cadvisor_attributes.json.cadvisor_version }}"
+              - "cAdvisor cores: {{ cadvisor_machine.json.num_cores }}"
+              - "cAdvisor observes: {{ cadvisor_observed_names }}"
 
       rescue:
         # Whatever went wrong, the reason is almost always in the systemd service log.
