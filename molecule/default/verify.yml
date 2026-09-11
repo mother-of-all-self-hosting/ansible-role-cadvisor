@@ -10,6 +10,10 @@
   become: true
   gather_facts: false
 
+  vars:
+    cadvisor_verify_units:
+      - cadvisor.service
+
   tasks:
     - name: Verify that cAdvisor works
       block:
@@ -21,13 +25,14 @@
             file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
             name: cadvisor_defaults
 
-        - name: Wait for the cAdvisor systemd service to become active (up to 180s)
+        - name: Wait for the cAdvisor systemd services to become active (up to 180s each)
           ansible.builtin.systemd_service:
-            name: cadvisor.service
-          register: cadvisor_service
-          until: cadvisor_service.status.ActiveState == 'active'
+            name: "{{ item }}"
+          register: cadvisor_services
+          until: cadvisor_services.status.ActiveState == 'active'
           retries: 36
           delay: 5
+          loop: "{{ cadvisor_verify_units }}"
           # So that giving up is reported by the assertion below rather than as a
           # wall of systemd unit properties.
           failed_when: false
@@ -35,17 +40,20 @@
         # `Restart=always` in the systemd unit means that even a container which crashes
         # and gets restarted reads as active here, so this is a precondition rather than
         # a result.
-        - name: Assert the cAdvisor systemd service is active
+        - name: Assert the cAdvisor systemd services are active
           ansible.builtin.assert:
-            that: cadvisor_service.status.ActiveState == 'active'
-            fail_msg: "cadvisor.service is not active ({{ cadvisor_service.status.ActiveState }})"
-            success_msg: "cadvisor.service is active"
+            that: cadvisor_services.results | map(attribute='status.ActiveState') | unique | list == ['active']
+            fail_msg: >-
+              Not every service is active:
+              {{ dict(cadvisor_verify_units | zip(cadvisor_services.results | map(attribute='status.ActiveState'))) }}
+            success_msg: "Every systemd service is active"
 
-        - name: Retrieve the cAdvisor systemd service log for debugging
+        - name: Retrieve the cAdvisor systemd services log for debugging
           when: cadvisor_debug_service_enabled | bool
           ansible.builtin.command:
-            cmd: journalctl --no-pager --output=cat --unit=cadvisor.service
+            cmd: "journalctl --no-pager --output=cat --unit={{ item }}"
           changed_when: false
+          loop: "{{ cadvisor_verify_units }}"
 
         # A systemd unit reaching "active" only means that `docker start` has not
         # exited yet. /healthz is the cheapest answer the cAdvisor process itself
@@ -170,7 +178,7 @@
         - name: Show the cAdvisor verification summary
           ansible.builtin.debug:
             msg:
-              - "cAdvisor systemd: {{ cadvisor_service.status.ActiveState }}"
+              - "cAdvisor systemd: {% for unit, state in cadvisor_verify_units | zip(cadvisor_services.results | map(attribute='status.ActiveState')) %}{{ unit }} ({{ state }}){% if not loop.last %}, {% endif %}{% endfor %}"
               - "cAdvisor version: {{ cadvisor_attributes.json.cadvisor_version }}"
               - "cAdvisor cores: {{ cadvisor_machine.json.num_cores }}"
               - "cAdvisor observes: {{ cadvisor_observed_names }}"
