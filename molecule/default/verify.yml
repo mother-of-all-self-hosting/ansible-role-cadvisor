@@ -64,15 +64,18 @@
             url: "http://127.0.0.1:{{ cadvisor_molecule_http_bind_port }}/healthz"
             method: GET
             return_content: true
-          register: cadvisor_healthz
-          until: cadvisor_healthz.status == 200
+          register: cadvisor_health
+          until: cadvisor_health.status == 200
           retries: 36
           delay: 5
+          # So that giving up is reported by the assertion below rather than as a
+          # wall of systemd unit properties.
+          failed_when: false
 
         - name: Assert cAdvisor reports itself healthy
           ansible.builtin.assert:
-            that: cadvisor_healthz.status == 200
-            fail_msg: "cAdvisor did not report itself healthy ({{ cadvisor_healthz.status | default('no response') }})"
+            that: cadvisor_health.status == 200
+            fail_msg: "cAdvisor did not report itself healthy: {{ cadvisor_health.status | default('no response') }}"
             success_msg: "cAdvisor reports itself healthy"
 
         - name: Query the version of the running cAdvisor
