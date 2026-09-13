@@ -31,6 +31,7 @@ provisioner:
       all:
         # Helper variables
         cadvisor_debug_service_enabled: false
+        cadvisor_restarts_check_enabled: true
 
         # The port on the host side of the container that the test container's
         # own Docker daemon runs on. cAdvisor is published there so that the
