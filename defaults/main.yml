@@ -118,7 +118,7 @@ cadvisor_container_extra_arguments: "{{ cadvisor_container_extra_arguments_auto 
 cadvisor_container_extra_arguments_auto: []
 cadvisor_container_extra_arguments_custom: []
 
-# A list of extra arguments to pass to the cAdvisor process
+# A list of extra arguments to pass to the process inside the container
 # Example: ['--SOME_ARGUMENT']
 # See https://github.com/google/cadvisor/blob/master/docs/runtime_options.md for more options
 cadvisor_process_extra_arguments: "{{ cadvisor_process_extra_arguments_auto + cadvisor_process_extra_arguments_custom }}"
