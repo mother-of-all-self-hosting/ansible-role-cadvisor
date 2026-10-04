@@ -25,9 +25,6 @@
     - name: Ensure Docker is installed for cAdvisor Molecule tests preparation
       ansible.builtin.include_role:
         name: ansible-role-docker
-      vars:
-        docker_daemon_options:
-          storage-driver: vfs
 
     # cAdvisor's whole purpose is to report on the containers of the Docker
     # daemon it is pointed at. Inside the test container that daemon is the one
