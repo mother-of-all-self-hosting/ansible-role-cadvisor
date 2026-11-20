@@ -27,7 +27,6 @@
   with_items:
     - cadvisor_uid
     - cadvisor_gid
-    - cadvisor_container_network
 
 - name: Run if Traefik is enabled
   when: cadvisor_container_labels_traefik_enabled | bool
